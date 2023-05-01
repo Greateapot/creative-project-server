@@ -8,7 +8,7 @@ import (
 
 func HandleConfig(w http.ResponseWriter, r *http.Request) {
 	if strings.Split(r.RemoteAddr, ":")[0] != local_ip {
-		responseString(w,http.StatusForbidden, "access denied")
+		responseString(w, http.StatusForbidden, "access denied")
 		return
 	}
 
@@ -28,9 +28,9 @@ func HandleConfig(w http.ResponseWriter, r *http.Request) {
 
 	if changes {
 		models.GetConfig().Write()
-		responseString(w,http.StatusOK, "ok")
+		responseString(w, http.StatusOK, "ok")
 	} else {
-		responseString(w,http.StatusBadRequest, "no changes")
+		responseString(w, http.StatusBadRequest, "no changes")
 	}
 
 }

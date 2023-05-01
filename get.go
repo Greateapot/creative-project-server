@@ -6,10 +6,17 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 )
 
+/*
+TODO: в зависимости от типа:
+1: уже готово (мб стоит изменить возврат пути хосту на формат file:///{...}) (ключ: title)
+2: прверять, предоставляет ли хост доступ к этой папке, если да, дать запрошенный файл, нет - развернуть на 180 и
+отправить обратно. (ключ: title+path)
+3: вернуть, как если бы хост хотел получить свой файл (ключ: title)
+*/
 func HandleGet(w http.ResponseWriter, r *http.Request) {
-
 	title := r.FormValue("title")
 	if title == "" {
 		responseString(w, http.StatusBadRequest, "no title")
@@ -32,6 +39,12 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	path := DecodeB64(item.Path)
+
+	if strings.Split(r.RemoteAddr, ":")[0] == local_ip {
+		responseString(w, http.StatusOK, path) // Ну а зачем мне скачивать файл, который находится на моем устройстве?
+		return                                 // Логичнее ж получить его путь и открыть в проводнике, чем заново скачивать.
+	}
+
 	file, err := os.Open(path)
 
 	defer func() {

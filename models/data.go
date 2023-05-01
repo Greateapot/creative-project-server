@@ -8,7 +8,7 @@ import (
 
 type Item struct {
 	Path  string `json:"path"`
-	Type  byte   `json:"type"`
+	Type  byte   `json:"type"` // затея в том, чтобы передавать не только файлы (1), но и папки (2), и ссылки (3).
 	Title string `json:"title"`
 }
 
