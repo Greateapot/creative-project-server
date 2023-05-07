@@ -1,6 +1,7 @@
 package main
 
 import (
+	"greateapot/creative_project_server/models"
 	"net/http"
 	"strings"
 	"time"
@@ -8,11 +9,11 @@ import (
 
 func HandleShutdown(w http.ResponseWriter, r *http.Request) {
 	if strings.Split(r.RemoteAddr, ":")[0] != local_ip {
-		responseString(w, http.StatusForbidden, "access denied")
+		sendResponse(w, models.CreateErrResponse(0x01, "access denied"))
 		return
 	}
 
-	responseString(w, http.StatusOK, "ok")
+	sendResponse(w, models.CreateOkResponse())
 
 	go func() {
 		time.Sleep(time.Second) // 1 sec delay for request

@@ -1,16 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"greateapot/creative-project-server/models"
+	"greateapot/creative_project_server/models"
 	"net/http"
+	"strings"
 )
 
 func HandleList(w http.ResponseWriter, r *http.Request) {
-	data := models.GetData()
-	result := ""
-	for _, item := range data.Items {
-		result += fmt.Sprintf("%d", item.Type) + ":" + item.Title + "\n"
+	if strings.Split(r.RemoteAddr, ":")[0] == local_ip {
+		sendResponse(w, models.CreateDataResponse(*models.GetData()))
+	} else {
+		sendResponse(w, models.CreateDataResponse(*models.GetHiddenData()))
 	}
-	responseString(w, http.StatusOK, result)
 }

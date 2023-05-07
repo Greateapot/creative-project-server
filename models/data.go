@@ -12,12 +12,27 @@ type Item struct {
 	Title string `json:"title"`
 }
 
+type HiddenItem struct {
+	Type  byte   `json:"type"`
+	Title string `json:"title"`
+}
+
 type Data struct {
 	Items []Item `json:"items"`
 }
 
+type HiddenData struct {
+	Items []HiddenItem `json:"items"`
+}
+
 func GetData() *Data {
 	data := &Data{}
+	data.Read()
+	return data
+}
+
+func GetHiddenData() *HiddenData {
+	data := &HiddenData{}
 	data.Read()
 	return data
 }
@@ -38,6 +53,28 @@ func (d *Data) Read() {
 			file.Close()
 			os.Rename(GetConfig().DataFileName, GetConfig().DataFileName+corrupted)
 			d.Write()
+		} else {
+			file.Close()
+		}
+	}
+}
+
+func (d *HiddenData) Read() {
+	file, err := os.OpenFile(GetConfig().DataFileName, os.O_RDONLY, 0666)
+
+	if err != nil {
+		if !os.IsNotExist(err) {
+			// Что-то не так с файлом
+			file.Close()
+			os.Rename(GetConfig().DataFileName, GetConfig().DataFileName+corrupted)
+		}
+		GetData().Write() // создаем новый
+	} else {
+		buf, _ := os.ReadFile(GetConfig().DataFileName)
+		if err := json.Unmarshal(buf, d); err != nil {
+			file.Close()
+			os.Rename(GetConfig().DataFileName, GetConfig().DataFileName+corrupted)
+			GetData().Write()
 		} else {
 			file.Close()
 		}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"greateapot/creative-project-server/models"
+	"greateapot/creative_project_server/models"
 	"net/http"
 	"strings"
 )
@@ -9,12 +9,12 @@ import (
 // Заголовок (Item.Title) - ключ
 func HandleDel(w http.ResponseWriter, r *http.Request) {
 	if strings.Split(r.RemoteAddr, ":")[0] != local_ip {
-		responseString(w, http.StatusForbidden, "access denied")
+		sendResponse(w, models.CreateErrResponse(0x01, "access denied"))
 		return
 	}
 
 	if title := r.FormValue("title"); title == "" {
-		responseString(w, http.StatusBadRequest, "no title")
+		sendResponse(w, models.CreateErrResponse(0xD1, "no title"))
 	} else {
 		data := models.GetData()
 		for i := 0; i < len(data.Items); i++ {
@@ -24,6 +24,6 @@ func HandleDel(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		data.Write()
-		responseString(w, http.StatusOK, "ok")
+		sendResponse(w, models.CreateOkResponse())
 	}
 }

@@ -1,3 +1,3 @@
-module greateapot/creative-project-server
+module greateapot/creative_project_server
 
 go 1.19

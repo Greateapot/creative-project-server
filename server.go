@@ -1,7 +1,7 @@
 package main
 
 import (
-	"greateapot/creative-project-server/models"
+	"greateapot/creative_project_server/models"
 	"log"
 	"net/http"
 )
@@ -29,7 +29,7 @@ func main() {
 			HandleShutdown(w, r)
 		case "/online": // http://192.168.XXX.XXX:8097/online // lip-lock
 			HandleOnline(w, r)
-		case "/config": // http:192.168.XXX.XXX:8097/config?dataFileName={B64ENC}&port=8097 // lip-lock
+		case "/config": // http:192.168.XXX.XXX:8097/config?dataFileName={B64ENC}&port=8097&scanDelay=100 // lip-lock
 			HandleConfig(w, r)
 		default: // http://192.168.XXX.XXX:8097/*
 			http.NotFound(w, r)

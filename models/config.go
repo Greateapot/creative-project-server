@@ -6,9 +6,19 @@ import (
 	"os"
 )
 
+/*
+ScanDelay:
+
+64 * 1000ms = 64 sec (slow LAN)
+
+64 * 500ms = 32 sec (medium LAN)
+
+64 * 100ms = 6.4 sec (fast LAN)
+*/
 type Config struct {
 	DataFileName string `json:"dataFileName"`
 	Port         string `json:"port"`
+	ScanDelay    int    `json:"scanDelay"`
 }
 
 const (
@@ -17,7 +27,7 @@ const (
 )
 
 func GetConfig() *Config {
-	config := &Config{"data.json", "8097"}
+	config := &Config{"data.json", "8097", 500}
 	config.Read()
 	return config
 }

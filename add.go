@@ -1,7 +1,7 @@
 package main
 
 import (
-	"greateapot/creative-project-server/models"
+	"greateapot/creative_project_server/models"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,7 +9,7 @@ import (
 
 func HandleAdd(w http.ResponseWriter, r *http.Request) {
 	if strings.Split(r.RemoteAddr, ":")[0] != local_ip {
-		responseString(w, http.StatusForbidden, "access denied")
+		sendResponse(w, models.CreateErrResponse(0x01, "access denied"))
 		return
 	}
 
@@ -17,25 +17,25 @@ func HandleAdd(w http.ResponseWriter, r *http.Request) {
 
 	item.Path = r.FormValue("path")
 	if item.Path == "" {
-		responseString(w, http.StatusBadRequest, "no path")
+		sendResponse(w, models.CreateErrResponse(0xA1, "no path"))
 		return
 	}
 
 	if r.FormValue("type") == "" {
-		responseString(w, http.StatusBadRequest, "no type")
+		sendResponse(w, models.CreateErrResponse(0xA2, "no type"))
 		return
 	}
 
 	if t, err := strconv.ParseUint(r.FormValue("type"), 10, 8); err == nil {
 		item.Type = uint8(t)
 	} else {
-		responseString(w, http.StatusBadRequest, "err type")
+		sendResponse(w, models.CreateErrResponse(0xA3, "err type"))
 		return
 	}
 
 	item.Title = r.FormValue("title")
 	if item.Title == "" {
-		responseString(w, http.StatusBadRequest, "no title")
+		sendResponse(w, models.CreateErrResponse(0xA4, "no title"))
 		return
 	}
 
@@ -47,10 +47,10 @@ func HandleAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if flag {
-		responseString(w, http.StatusBadRequest, "title already exists")
+		sendResponse(w, models.CreateErrResponse(0xA5, "title already exists"))
 	} else {
 		data.Items = append(data.Items, *item)
 		data.Write()
-		responseString(w, http.StatusOK, "ok")
+		sendResponse(w, models.CreateOkResponse())
 	}
 }

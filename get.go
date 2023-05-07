@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"greateapot/creative-project-server/models"
+	"greateapot/creative_project_server/models"
 	"io"
 	"net/http"
 	"os"
@@ -19,7 +19,7 @@ TODO: в зависимости от типа:
 func HandleGet(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	if title == "" {
-		responseString(w, http.StatusBadRequest, "no title")
+		sendResponse(w, models.CreateErrResponse(0xB1, "no title"))
 		return
 	}
 
@@ -34,15 +34,19 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if item.Path == "" {
-		responseString(w, http.StatusNotFound, "not found")
+		sendResponse(w, models.CreateErrResponse(0xB2, "not found"))
 		return
 	}
 
 	path := DecodeB64(item.Path)
 
 	if strings.Split(r.RemoteAddr, ":")[0] == local_ip {
-		responseString(w, http.StatusOK, path) // Ну а зачем мне скачивать файл, который находится на моем устройстве?
-		return                                 // Логичнее ж получить его путь и открыть в проводнике, чем заново скачивать.
+		/*
+			Ну а зачем мне скачивать файл, который находится на моем устройстве?
+			Логичнее ж получить его путь и открыть в проводнике, чем заново скачивать.
+		*/
+		sendResponse(w, models.CreateDataResponse(path))
+		return
 	}
 
 	file, err := os.Open(path)
@@ -52,7 +56,7 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if err != nil {
-		responseString(w, http.StatusNotFound, "not found")
+		sendResponse(w, models.CreateErrResponse(0xB3, "not found"))
 		return
 	}
 

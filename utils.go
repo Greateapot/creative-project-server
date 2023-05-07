@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"greateapot/creative-project-server/models"
+	"greateapot/creative_project_server/models"
 	"net"
 	"net/http"
 	"strconv"
@@ -11,11 +12,17 @@ import (
 	"time"
 )
 
-func responseString(w http.ResponseWriter, statusCode int, message string) {
-	w.WriteHeader(statusCode)
-	w.Write([]byte(message))
+func sendResponse(w http.ResponseWriter, r *models.Response) {
+	if data, err := json.MarshalIndent(r, "", "  "); err == nil {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(data))
+	} else {
+		// никогда не вернется...
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
+// stackoverflow
 func GetLocalIP() string {
 	conn, _ := net.Dial("udp", "8.8.8.8:80") // как оказалось, самый быстрый способ узнать свой локальный айпи
 	defer conn.Close()
@@ -45,13 +52,11 @@ func GetOnline() string {
 	count := 0
 	line := ""
 
-	// cfg
-	port := models.GetConfig().Port
-	timeout := time.Duration(time.Millisecond * 500) // TODO: MV to cfg
-	// 64 * 1 = 64 (slow LAN); 64 * .5 = 32 sec (medium LAN); 64 * .1 = 6.4 sec (fast LAN).
+	config := models.GetConfig()
+	timeout := time.Duration(time.Duration(config.ScanDelay) * time.Millisecond)
 
 	for a := 0; a < 256; a += 64 {
-		go getOnline(a, a+64, pattern, port, timeout, buf, ex)
+		go getOnline(a, a+64, pattern, config.Port, timeout, buf, ex)
 	}
 
 	for {
@@ -71,6 +76,7 @@ func GetOnline() string {
 	return strings.Trim(line, ",") // лишняя ','
 }
 
+// stackoverflow
 func DecodeB64(data string) string {
 	//.Replace('+', '.').Replace('/', '_').Replace('=', '-');
 	data = strings.Replace(data, ".", "+", -1)

@@ -1,36 +1,49 @@
 package main
 
 import (
-	"greateapot/creative-project-server/models"
+	"greateapot/creative_project_server/models"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 func HandleConfig(w http.ResponseWriter, r *http.Request) {
 	if strings.Split(r.RemoteAddr, ":")[0] != local_ip {
-		responseString(w, http.StatusForbidden, "access denied")
+		sendResponse(w, models.CreateErrResponse(0x01, "access denied"))
 		return
 	}
 
 	changes := false
+	config := models.GetConfig()
 
 	DataFileName := r.FormValue("dataFileName")
 	if DataFileName != "" {
-		models.GetConfig().DataFileName = DataFileName
+		config.DataFileName = DataFileName
 		changes = true
 	}
 
 	Port := r.FormValue("port")
 	if Port != "" {
-		models.GetConfig().Port = Port
+		config.Port = Port
 		changes = true
 	}
 
-	if changes {
-		models.GetConfig().Write()
-		responseString(w, http.StatusOK, "ok")
+	ScanDelay := r.FormValue("scanDelay")
+	if ScanDelay != "" {
+		if v, err := strconv.Atoi(ScanDelay); err != nil {
+			sendResponse(w, models.CreateErrResponse(0xC1, "err scanDelay"))
+		} else {
+			// TODO: assert max int val
+			config.ScanDelay = v
+			changes = true
+		}
+	}
+
+	if !changes {
+		sendResponse(w, models.CreateErrResponse(0xC2, "no changes"))
 	} else {
-		responseString(w, http.StatusBadRequest, "no changes")
+		config.Write()
+		sendResponse(w, models.CreateOkResponse())
 	}
 
 }
