@@ -44,7 +44,7 @@ func getOnline(a int, b int, pattern string, port string, timeout time.Duration,
 	buf <- -1 // сигнал о том, что перебор окончен
 }
 
-func GetOnline() string {
+func GetOnline() *models.Online {
 	lips := strings.Split(local_ip, ".") // Да, губы
 	pattern := strings.Join(lips[:3], ".")
 	ex, _ := strconv.Atoi(lips[3])
@@ -72,8 +72,15 @@ func GetOnline() string {
 			line += "," + fmt.Sprintf("%d", v)
 		}
 	}
+	online := strings.Split(strings.Trim(line, ","), ",")
+	filtered := []string{}
 
-	return strings.Trim(line, ",") // лишняя ','
+	for i := range online {
+		if len(online[i]) > 0 {
+			filtered = append(filtered, pattern+"."+online[i])
+		}
+	}
+	return &models.Online{Online: filtered}
 }
 
 // stackoverflow

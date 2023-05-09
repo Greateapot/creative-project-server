@@ -18,12 +18,13 @@ func HandleConfig(w http.ResponseWriter, r *http.Request) {
 
 	DataFileName := r.FormValue("dataFileName")
 	if DataFileName != "" {
-		config.DataFileName = DataFileName
+		config.DataFileName = DecodeB64(DataFileName)
 		changes = true
 	}
 
 	Port := r.FormValue("port")
 	if Port != "" {
+		// TODO: CP scanDelay
 		config.Port = Port
 		changes = true
 	}

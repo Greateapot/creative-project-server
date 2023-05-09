@@ -12,6 +12,7 @@ var (
 )
 
 func main() {
+	// TODO: заменить этот костыль на аргумент .exe
 	local_ip = GetLocalIP()
 
 	server.Addr = local_ip + ":" + models.GetConfig().Port
