@@ -3,13 +3,10 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"greateapot/creative_project_server/models"
-	"net"
+	// "net"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 )
 
 func sendResponse(w http.ResponseWriter, r *models.Response) {
@@ -23,65 +20,14 @@ func sendResponse(w http.ResponseWriter, r *models.Response) {
 }
 
 // stackoverflow
-func GetLocalIP() string {
-	conn, _ := net.Dial("udp", "8.8.8.8:80") // как оказалось, самый быстрый способ узнать свой локальный айпи
-	defer conn.Close()
+// func GetLocalIP() string {
+// 	conn, _ := net.Dial("udp", "8.8.8.8:80") // как оказалось, самый быстрый способ узнать свой локальный айпи
+// 	defer conn.Close()
 
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
+// 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 
-	return strings.Split(localAddr.String(), ":")[0] // порт нам не интересен, udp же
-}
-
-func getOnline(a int, b int, pattern string, port string, timeout time.Duration, buf chan int, ex int) {
-	for i := a; i < b; i++ {
-		if i == ex {
-			continue // пропускаем себя
-		}
-		if _, err := net.DialTimeout("tcp", pattern+"."+fmt.Sprintf("%d", i)+":"+port, timeout); err == nil {
-			buf <- i
-		}
-	}
-	buf <- -1 // сигнал о том, что перебор окончен
-}
-
-func GetOnline() *models.Online {
-	lips := strings.Split(local_ip, ".") // Да, губы
-	pattern := strings.Join(lips[:3], ".")
-	ex, _ := strconv.Atoi(lips[3])
-	buf := make(chan int)
-	count := 0
-	line := ""
-
-	config := models.GetConfig()
-	timeout := time.Duration(time.Duration(config.ScanDelay) * time.Millisecond)
-
-	for a := 0; a < 256; a += 64 {
-		go getOnline(a, a+64, pattern, config.Port, timeout, buf, ex)
-	}
-
-	for {
-		v, ok := <-buf
-		if !ok {
-			break
-		} else if v < 0 {
-			count++
-			if count == 4 {
-				close(buf)
-			}
-		} else {
-			line += "," + fmt.Sprintf("%d", v)
-		}
-	}
-	online := strings.Split(strings.Trim(line, ","), ",")
-	filtered := []string{}
-
-	for i := range online {
-		if len(online[i]) > 0 {
-			filtered = append(filtered, pattern+"."+online[i])
-		}
-	}
-	return &models.Online{Online: filtered}
-}
+// 	return strings.Split(localAddr.String(), ":")[0] // порт нам не интересен, udp же
+// }
 
 // stackoverflow
 func DecodeB64(data string) string {
@@ -92,4 +38,5 @@ func DecodeB64(data string) string {
 	base64Text := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
 	base64.StdEncoding.Decode(base64Text, []byte(data))
 	return strings.Trim(string(base64Text), string(byte(0)))
+	// А всё, А EncodeB64 не будет
 }

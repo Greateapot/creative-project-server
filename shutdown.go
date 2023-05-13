@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-func HandleShutdown(w http.ResponseWriter, r *http.Request) {
-	if strings.Split(r.RemoteAddr, ":")[0] != local_ip {
+func HandleShutdown(s *http.Server, w http.ResponseWriter, r *http.Request) {
+	if strings.Split(r.RemoteAddr, ":")[0] != models.LocalIp {
 		sendResponse(w, models.CreateErrResponse(0x01, "access denied"))
 		return
 	}
@@ -17,6 +17,6 @@ func HandleShutdown(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		time.Sleep(time.Second) // 1 sec delay for request
-		server.Shutdown(r.Context())
+		s.Shutdown(r.Context())
 	}()
 }

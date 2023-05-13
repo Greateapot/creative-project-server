@@ -1,21 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"greateapot/creative_project_server/models"
-	"log"
 	"net/http"
 )
 
-var (
-	server   = &http.Server{}    // чтоб хендлер handleShutdown мог находится в отдельном файле
-	local_ip = "192.168.XXX.XXX" // если б локальный айпи не менялся каждую перезагрузку роутера...
-)
-
+// creative_project_server.exe --lip=192.168.10.104 --port=8097 --sd=100 --st=8
 func main() {
-	// TODO: заменить этот костыль на аргумент .exe
-	local_ip = GetLocalIP()
-
-	server.Addr = local_ip + ":" + models.GetConfig().Port
+	server := &http.Server{}
+	server.Addr = fmt.Sprintf("%s:%d", models.LocalIp, models.Port)
 	server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch path := r.URL.Path; path {
 		case "/get": // http://192.168.XXX.XXX:8097/get?title={B64ENC}
@@ -27,11 +21,9 @@ func main() {
 		case "/del": // http://192.168.XXX.XXX:8097/del?title={B64ENC} // lip-lock
 			HandleDel(w, r)
 		case "/shutdown": // http://192.168.XXX.XXX:8097/shutdown // lip-lock
-			HandleShutdown(w, r)
+			HandleShutdown(server, w, r)
 		case "/online": // http://192.168.XXX.XXX:8097/online // lip-lock
 			HandleOnline(w, r)
-		case "/config": // http:192.168.XXX.XXX:8097/config?dataFileName={B64ENC}&port=8097&scanDelay=100 // lip-lock
-			HandleConfig(w, r)
 		default: // http://192.168.XXX.XXX:8097/*
 			http.NotFound(w, r)
 		}
@@ -40,6 +32,6 @@ func main() {
 	// порт 8097 - порт по умолчанию. Его можно изменить, если какой-то другой софт уже занял его.
 
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Panicln(err)
+		panic(err)
 	}
 }

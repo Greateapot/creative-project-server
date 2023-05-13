@@ -40,7 +40,7 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 
 	path := DecodeB64(item.Path)
 
-	if strings.Split(r.RemoteAddr, ":")[0] == local_ip {
+	if strings.Split(r.RemoteAddr, ":")[0] == models.LocalIp {
 		/*
 			Ну а зачем мне скачивать файл, который находится на моем устройстве?
 			Логичнее ж получить его путь и открыть в проводнике, чем заново скачивать.

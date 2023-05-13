@@ -8,7 +8,7 @@ import (
 
 // Заголовок (Item.Title) - ключ
 func HandleDel(w http.ResponseWriter, r *http.Request) {
-	if strings.Split(r.RemoteAddr, ":")[0] != local_ip {
+	if strings.Split(r.RemoteAddr, ":")[0] != models.LocalIp {
 		sendResponse(w, models.CreateErrResponse(0x01, "access denied"))
 		return
 	}
