@@ -3,39 +3,38 @@ package main
 import (
 	"greateapot/creative_project_server/models"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
 func HandleAdd(w http.ResponseWriter, r *http.Request) {
 	if strings.Split(r.RemoteAddr, ":")[0] != models.LocalIp {
-		sendResponse(w, models.CreateErrResponse(0x01, "access denied"))
+		sendResponse(w, models.CreateErrResponse(1))
 		return
 	}
 
 	item := &models.Item{}
 
-	item.Path = r.FormValue("path")
-	if item.Path == "" {
-		sendResponse(w, models.CreateErrResponse(0xA1, "no path"))
-		return
-	}
-
-	if r.FormValue("type") == "" {
-		sendResponse(w, models.CreateErrResponse(0xA2, "no type"))
-		return
-	}
-
-	if t, err := strconv.ParseUint(r.FormValue("type"), 10, 8); err == nil {
-		item.Type = uint8(t)
+	if body, err := parseRequestBody(r); err == nil {
+		item.Path = body.Path
+		item.Title = body.Title
+		item.Type = body.Type
 	} else {
-		sendResponse(w, models.CreateErrResponse(0xA3, "err type"))
+		sendResponse(w, models.CreateErrResponse(2))
 		return
 	}
 
-	item.Title = r.FormValue("title")
+	if item.Path == "" {
+		sendResponse(w, models.CreateErrResponse(3))
+		return
+	}
+
 	if item.Title == "" {
-		sendResponse(w, models.CreateErrResponse(0xA4, "no title"))
+		sendResponse(w, models.CreateErrResponse(4))
+		return
+	}
+
+	if item.Type < 0 {
+		sendResponse(w, models.CreateErrResponse(5))
 		return
 	}
 
@@ -47,7 +46,7 @@ func HandleAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if flag {
-		sendResponse(w, models.CreateErrResponse(0xA5, "title already exists"))
+		sendResponse(w, models.CreateErrResponse(9))
 	} else {
 		data.Items = append(data.Items, *item)
 		data.Write()

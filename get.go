@@ -6,20 +6,18 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 )
 
-/*
-TODO: в зависимости от типа:
-1: уже готово (мб стоит изменить возврат пути хосту на формат file:///{...}) (ключ: title)
-2: прверять, предоставляет ли хост доступ к этой папке, если да, дать запрошенный файл, нет - развернуть на 180 и
-отправить обратно. (ключ: title+path)
-3: вернуть, как если бы хост хотел получить свой файл (ключ: title)
-*/
 func HandleGet(w http.ResponseWriter, r *http.Request) {
-	title := r.FormValue("title")
-	if title == "" {
-		sendResponse(w, models.CreateErrResponse(0xB1, "no title"))
+	body, err := parseRequestBody(r)
+
+	if err != nil {
+		sendResponse(w, models.CreateErrResponse(2))
+		return
+	}
+
+	if body.Title == "" {
+		sendResponse(w, models.CreateErrResponse(4))
 		return
 	}
 
@@ -27,36 +25,35 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 
 	var item models.Item
 	for _, it := range data.Items {
-		if it.Title == title {
+		if it.Title == body.Title {
 			item = it
 			break
 		}
 	}
 
-	if item.Path == "" {
-		sendResponse(w, models.CreateErrResponse(0xB2, "not found"))
+	if item.Type != 1 { // не файл
+		sendResponse(w, models.CreateErrResponse(11))
 		return
 	}
 
-	path := DecodeB64(item.Path)
+	// TODO: RW
+	// if strings.Split(r.RemoteAddr, ":")[0] == models.LocalIp {
+	// 	/*
+	// 		Ну а зачем мне скачивать файл, который находится на моем устройстве?
+	// 		Логичнее ж получить его путь и открыть в проводнике, чем заново скачивать.
+	// 	*/
+	// 	sendResponse(w, models.CreateDataResponse(item.Path))
+	// 	return
+	// }
 
-	if strings.Split(r.RemoteAddr, ":")[0] == models.LocalIp {
-		/*
-			Ну а зачем мне скачивать файл, который находится на моем устройстве?
-			Логичнее ж получить его путь и открыть в проводнике, чем заново скачивать.
-		*/
-		sendResponse(w, models.CreateDataResponse(path))
-		return
-	}
-
-	file, err := os.Open(path)
+	file, err := os.Open(item.Path)
 
 	defer func() {
 		file.Close()
 	}()
 
 	if err != nil {
-		sendResponse(w, models.CreateErrResponse(0xB3, "not found"))
+		sendResponse(w, models.CreateErrResponse(10))
 		return
 	}
 

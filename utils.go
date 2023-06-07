@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"greateapot/creative_project_server/models"
-	// "net"
+	"io"
 	"net/http"
-	"strings"
 )
 
 func sendResponse(w http.ResponseWriter, r *models.Response) {
@@ -19,24 +17,9 @@ func sendResponse(w http.ResponseWriter, r *models.Response) {
 	}
 }
 
-// stackoverflow
-// func GetLocalIP() string {
-// 	conn, _ := net.Dial("udp", "8.8.8.8:80") // как оказалось, самый быстрый способ узнать свой локальный айпи
-// 	defer conn.Close()
-
-// 	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-// 	return strings.Split(localAddr.String(), ":")[0] // порт нам не интересен, udp же
-// }
-
-// stackoverflow
-func DecodeB64(data string) string {
-	//.Replace('+', '.').Replace('/', '_').Replace('=', '-');
-	data = strings.Replace(data, ".", "+", -1)
-	data = strings.Replace(data, "_", "/", -1)
-	data = strings.Replace(data, "-", "=", -1)
-	base64Text := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
-	base64.StdEncoding.Decode(base64Text, []byte(data))
-	return strings.Trim(string(base64Text), string(byte(0)))
-	// А всё, А EncodeB64 не будет
+func parseRequestBody(r *http.Request) (body *models.Request, err error) {
+	body = models.NewRequest()
+	bytes, _ := io.ReadAll(r.Body)
+	err = json.Unmarshal(bytes, body)
+	return
 }

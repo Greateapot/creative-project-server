@@ -9,16 +9,23 @@ import (
 // Заголовок (Item.Title) - ключ
 func HandleDel(w http.ResponseWriter, r *http.Request) {
 	if strings.Split(r.RemoteAddr, ":")[0] != models.LocalIp {
-		sendResponse(w, models.CreateErrResponse(0x01, "access denied"))
+		sendResponse(w, models.CreateErrResponse(1))
 		return
 	}
 
-	if title := r.FormValue("title"); title == "" {
-		sendResponse(w, models.CreateErrResponse(0xD1, "no title"))
+	body, err := parseRequestBody(r)
+
+	if err != nil {
+		sendResponse(w, models.CreateErrResponse(2))
+		return
+	}
+
+	if body.Title == "" {
+		sendResponse(w, models.CreateErrResponse(4))
 	} else {
 		data := models.GetData()
 		for i := 0; i < len(data.Items); i++ {
-			if data.Items[i].Title == title {
+			if data.Items[i].Title == body.Title {
 				data.Items = append(data.Items[:i], data.Items[i+1:]...)
 				i--
 			}

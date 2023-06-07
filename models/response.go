@@ -1,52 +1,36 @@
 package models
 
 /*
-0x0{N} (*):
+ErrCodes:
+
+0 - no err
 
 1 - access denied
 
-0xA{N} (ADD):
+2 - err parse req body
 
-1 - no path
+3 - no path in req body
 
-2 - no type
+4 - no title in req body
 
-3 - err type
+5 - no type in req body
 
-4 - no title // B1, D1
+6 - path not found
 
-5 - title already exists
+7 - title not found
 
+8 - type not found
 
-0xB{N} (GET):
+9 - title already exists
 
-1 - no title // A4, D1
+10 - path not exists
 
-2 - not found // B3
-
-3 - not found // B2
-
-
-0xC{N} (CONFIG):
-
-1 - err scanDelay
-
-2 - no changes
-
-
-0xD{N} (DEL):
-
-1 - no title // A4, B1
+11 - WIP
 */
-type Err struct {
-	Code    byte   `json:"code"`
-	Message string `json:"message"`
-}
-
 type Response struct {
-	Ok   bool `json:"ok"`
-	Err  *Err  `json:"err,omitempty"`
-	Data any  `json:"data,omitempty"`
+	Ok      bool `json:"ok"`
+	ErrCode byte `json:"err,omitempty"`
+	Data    any  `json:"data,omitempty"`
 }
 
 func CreateOkResponse() *Response {
@@ -55,10 +39,10 @@ func CreateOkResponse() *Response {
 	return r
 }
 
-func CreateErrResponse(code byte, message string) *Response {
+func CreateErrResponse(code byte) *Response {
 	r := &Response{}
 	r.Ok = false
-	r.Err = &Err{code, message}
+	r.ErrCode = code
 	return r
 }
 

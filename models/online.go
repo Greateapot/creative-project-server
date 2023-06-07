@@ -26,14 +26,13 @@ func getOnline(a int, b int, pattern string, timeout time.Duration, buf chan int
 }
 
 func GetOnline() *Online {
-	lips := strings.Split(LocalIp, ".") // Да, губы
+	lips := strings.Split(LocalIp, ".")
 	pattern := strings.Join(lips[:3], ".")
 	ex, _ := strconv.Atoi(lips[3])
 	buf := make(chan int)
 	count := 0
 	line := ""
 
-	// config := models.GetConfig()
 	timeout := time.Duration(time.Duration(scanDelay) * time.Millisecond)
 
 	for a := 0; a < 256; a += 256 / scanThreads {

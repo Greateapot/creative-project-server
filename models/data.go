@@ -2,13 +2,26 @@ package models
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 )
 
+/*
+Item.Type:
+
+Folder: 0
+
+File: 1
+
+Link: 2
+*/
 type Item struct {
-	Path  string `json:"path"`
-	Type  byte   `json:"type"` // затея в том, чтобы передавать не только файлы (1), но и папки (2), и ссылки (3).
+	Path string `json:"path"`
+
+	Type int `json:"type"`
+
 	Title string `json:"title"`
 }
 
@@ -17,14 +30,13 @@ type Data struct {
 }
 
 type HiddenItem struct {
-	Type  byte   `json:"type"`
+	Type  int    `json:"type"`
 	Title string `json:"title"`
 }
 
 type HiddenData struct {
 	Items []HiddenItem `json:"items"`
 }
-
 
 func GetData() *Data {
 	data := &Data{}
@@ -38,10 +50,27 @@ func GetHiddenData() *HiddenData {
 	return data
 }
 
+func (d *Data) open(flag int) (*os.File, error) {
+	if homeDir, err := os.UserHomeDir(); err != nil {
+		return nil, err
+	} else {
+		return os.OpenFile(filepath.Join(homeDir, "Documents", "Creative Project", dataFileName), flag, 0666)
+	}
+}
+
+func (d *HiddenData) open(flag int) (*os.File, error) {
+	if homeDir, err := os.UserHomeDir(); err != nil {
+		return nil, err
+	} else {
+		return os.OpenFile(filepath.Join(homeDir, "Documents", "Creative Project", dataFileName), flag, 0666)
+	}
+}
+
 func (d *Data) Read() {
-	file, err := os.OpenFile(dataFileName, os.O_RDONLY, 0666)
+	file, err := d.open(os.O_RDONLY)
 
 	if err != nil {
+		fmt.Println("Read(Open):", err, ";data:", d)
 		if !os.IsNotExist(err) {
 			// Что-то не так с файлом
 			file.Close()
@@ -49,21 +78,25 @@ func (d *Data) Read() {
 		}
 		d.Write() // создаем новый
 	} else {
-		buf, _ := os.ReadFile(dataFileName)
-		if err := json.Unmarshal(buf, d); err != nil {
+		if buf, err := io.ReadAll(file); err != nil {
+			fmt.Println("Read(ReadAll):", err, ";data:", d)
+		} else if err := json.Unmarshal(buf, d); err != nil {
+			fmt.Println("Read(Unmarshal):", err, ";data:", d)
 			file.Close()
 			os.Rename(dataFileName, dataFileName+corrupted)
 			d.Write()
 		} else {
+			// fmt.Println("Read(End): ok")
 			file.Close()
 		}
 	}
 }
 
 func (d *HiddenData) Read() {
-	file, err := os.OpenFile(dataFileName, os.O_RDONLY, 0666)
+	file, err := d.open(os.O_RDONLY)
 
 	if err != nil {
+		fmt.Println("Read(Open):", err, ";data:", d)
 		if !os.IsNotExist(err) {
 			// Что-то не так с файлом
 			file.Close()
@@ -71,40 +104,37 @@ func (d *HiddenData) Read() {
 		}
 		GetData().Write() // создаем новый
 	} else {
-		buf, _ := os.ReadFile(dataFileName)
-		if err := json.Unmarshal(buf, d); err != nil {
+		if buf, err := io.ReadAll(file); err != nil {
+			fmt.Println("Read(ReadAll):", err, ";data:", d)
+		} else if err := json.Unmarshal(buf, d); err != nil {
+			fmt.Println("Read(Unmarshal):", err, ";data:", d)
 			file.Close()
 			os.Rename(dataFileName, dataFileName+corrupted)
 			GetData().Write()
 		} else {
+			// fmt.Println("Read(End): ok")
 			file.Close()
 		}
 	}
 }
 
-// TODO: RM logs
 func (d *Data) Write() {
-	file, err := os.OpenFile(
-		dataFileName,
-		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-		0666,
-	)
+	file, err := d.open(os.O_CREATE | os.O_WRONLY | os.O_TRUNC)
 
 	defer func() {
 		if err := file.Close(); err != nil {
-			log.Panicln("Write(Close):", err, ";data:", d)
+			fmt.Println("Write(Close):", err, ";data:", d)
 		}
 	}()
 
 	if err != nil {
-		log.Panicln("Write(Open):", err, ";data:", d)
+		fmt.Println("Write(Open):", err, ";data:", d)
+	} else if data, err := json.Marshal(d); err != nil {
+		fmt.Println("Write(Marshal):", err, ";data:", d)
+	} else if _, err := file.Write(data); err != nil {
+		fmt.Println("Write(Write):", err, ";data:", d)
 	}
-	data, err := json.Marshal(d)
-	if err != nil {
-		log.Panicln("Write(Marshal):", err, ";data:", d)
-	}
-	if _, err := file.Write(data); err != nil {
-		log.Panicln("Write(Write):", err, ";data:", d)
-	}
-
+	// else {
+	// fmt.Println("Write(End): ok")
+	// }
 }
