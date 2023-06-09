@@ -9,43 +9,47 @@ import (
 )
 
 func HandleGet(w http.ResponseWriter, r *http.Request) {
-	body, err := parseRequestBody(r)
 
-	if err != nil {
-		sendResponse(w, models.CreateErrResponse(2))
-		return
-	}
+	if title := r.FormValue("title"); title == "" {
+		sendResponse(w, models.GetResponseErrNoValueInBody())
+	} else {
+		var item *models.Item
 
-	if body.Title == "" {
-		sendResponse(w, models.CreateErrResponse(4))
-		return
-	}
+		for _, i := range models.GetData().Items {
+			if i.Title == title {
+				item = i
+				break
+			}
+		}
+		if item.Title == "" {
+			sendResponse(w, models.GetResponseErrItemNotExists())
+			return
+		}
 
-	data := models.GetData()
-
-	var item models.Item
-	for _, it := range data.Items {
-		if it.Title == body.Title {
-			item = it
-			break
+		switch item.Type {
+		case 1: // folder
+			handleFolder(w, item)
+		case 2: // file
+			if IsHostRequest(r) {
+				// TODO: А зачем тебе твой же файл?
+				sendResponse(w, models.GetResponseErr())
+			} else {
+				handleFile(w, item)
+			}
+		case 3: // link
+			handleLink(w, item)
+		default:
+			// TODO: А как так вышло, что у нас в [data.json] объект с несуществующим типом?
+			sendResponse(w, models.GetResponseErr())
 		}
 	}
+}
 
-	if item.Type != 1 { // не файл
-		sendResponse(w, models.CreateErrResponse(11))
-		return
-	}
+func handleFolder(w http.ResponseWriter, item *models.Item) {
+	sendResponse(w, models.GetResponseErrWIP())
+}
 
-	// TODO: RW
-	// if strings.Split(r.RemoteAddr, ":")[0] == models.LocalIp {
-	// 	/*
-	// 		Ну а зачем мне скачивать файл, который находится на моем устройстве?
-	// 		Логичнее ж получить его путь и открыть в проводнике, чем заново скачивать.
-	// 	*/
-	// 	sendResponse(w, models.CreateDataResponse(item.Path))
-	// 	return
-	// }
-
+func handleFile(w http.ResponseWriter, item *models.Item) {
 	file, err := os.Open(item.Path)
 
 	defer func() {
@@ -53,16 +57,17 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	if err != nil {
-		sendResponse(w, models.CreateErrResponse(10))
-		return
+		sendResponse(w, models.GetResponseErrSendFile())
+	} else if stat, err := file.Stat(); err != nil {
+		sendResponse(w, models.GetResponseErrSendFile())
+	} else {
+		w.Header().Set("Content-Disposition", "attachment; filename="+item.Title) // TODO: replace err symbols (\|'"...)
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", stat.Size()))
+		io.Copy(w, file)
 	}
+}
 
-	stat, _ := file.Stat()
-
-	w.Header().Set("Content-Disposition", "attachment; filename="+stat.Name())
-	w.Header().Set("Content-Type", "text/plain")
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", stat.Size()))
-
-	// stream the file to the client without fully loading it into memory
-	io.Copy(w, file)
+func handleLink(w http.ResponseWriter, item *models.Item) {
+	sendResponse(w, models.CreateDataResponse(item.Path))
 }

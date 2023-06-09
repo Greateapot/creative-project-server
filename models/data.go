@@ -11,31 +11,24 @@ import (
 /*
 Item.Type:
 
-Folder: 0
+Empty: 0 (default)
 
-File: 1
+Folder: 1
 
-Link: 2
+File: 2
+
+Link: 3
 */
 type Item struct {
-	Path string `json:"path"`
+	Title string `json:"title"`
+
+	Path string `json:"path,omitempty"`
 
 	Type int `json:"type"`
-
-	Title string `json:"title"`
 }
 
 type Data struct {
-	Items []Item `json:"items"`
-}
-
-type HiddenItem struct {
-	Type  int    `json:"type"`
-	Title string `json:"title"`
-}
-
-type HiddenData struct {
-	Items []HiddenItem `json:"items"`
+	Items []*Item `json:"items"`
 }
 
 func GetData() *Data {
@@ -44,21 +37,16 @@ func GetData() *Data {
 	return data
 }
 
-func GetHiddenData() *HiddenData {
-	data := &HiddenData{}
-	data.Read()
-	return data
+func (d *Data) HidePath() (hiddenData *Data) {
+	hiddenData = &Data{}
+	for _, item := range d.Items {
+		hiddenItem := &Item{item.Title, "", item.Type} // create copy with no path
+		hiddenData.Items = append(hiddenData.Items, hiddenItem)
+	}
+	return
 }
 
 func (d *Data) open(flag int) (*os.File, error) {
-	if homeDir, err := os.UserHomeDir(); err != nil {
-		return nil, err
-	} else {
-		return os.OpenFile(filepath.Join(homeDir, "Documents", "Creative Project", dataFileName), flag, 0666)
-	}
-}
-
-func (d *HiddenData) open(flag int) (*os.File, error) {
 	if homeDir, err := os.UserHomeDir(); err != nil {
 		return nil, err
 	} else {
@@ -85,32 +73,6 @@ func (d *Data) Read() {
 			file.Close()
 			os.Rename(dataFileName, dataFileName+corrupted)
 			d.Write()
-		} else {
-			// fmt.Println("Read(End): ok")
-			file.Close()
-		}
-	}
-}
-
-func (d *HiddenData) Read() {
-	file, err := d.open(os.O_RDONLY)
-
-	if err != nil {
-		fmt.Println("Read(Open):", err, ";data:", d)
-		if !os.IsNotExist(err) {
-			// Что-то не так с файлом
-			file.Close()
-			os.Rename(dataFileName, dataFileName+corrupted)
-		}
-		GetData().Write() // создаем новый
-	} else {
-		if buf, err := io.ReadAll(file); err != nil {
-			fmt.Println("Read(ReadAll):", err, ";data:", d)
-		} else if err := json.Unmarshal(buf, d); err != nil {
-			fmt.Println("Read(Unmarshal):", err, ";data:", d)
-			file.Close()
-			os.Rename(dataFileName, dataFileName+corrupted)
-			GetData().Write()
 		} else {
 			// fmt.Println("Read(End): ok")
 			file.Close()
