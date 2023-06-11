@@ -7,8 +7,8 @@ import (
 
 func HandleList(w http.ResponseWriter, r *http.Request) {
 	if IsHostRequest(r) {
-		sendResponse(w, models.CreateDataResponse(*models.GetData()))
+		sendResponse(w, http.StatusForbidden, models.GetResponseData(*models.GetData()))
 	} else {
-		sendResponse(w, models.CreateDataResponse(*models.GetData().HidePath()))
+		sendResponse(w, http.StatusOK, models.GetResponseData(*models.GetData().HidePath()))
 	}
 }

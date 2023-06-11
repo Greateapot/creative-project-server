@@ -7,9 +7,9 @@ import (
 	"strings"
 )
 
-func sendResponse(w http.ResponseWriter, r *models.Response) {
+func sendResponse(w http.ResponseWriter, statusCode int, r *models.Response) {
 	if data, err := json.Marshal(r); err == nil {
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(statusCode)
 		w.Write([]byte(data))
 	} else {
 		// Не должно вернуться

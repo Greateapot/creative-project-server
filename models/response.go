@@ -1,55 +1,68 @@
 package models
 
 type Response struct {
-	Ok      bool `json:"ok"`
-	ErrCode byte `json:"err,omitempty"`
-	Data    any  `json:"data,omitempty"`
-}
-
-// Все ок, вот тебе данные
-func CreateDataResponse(data any) *Response {
-	r := &Response{}
-	r.Ok = true
-	r.Data = data
-	return r
+	Err  any `json:"err,omitempty"`
+	Data any `json:"data,omitempty"`
 }
 
 // Все ок, но данные ты не получишь
-func GetResponseOK() *Response {
-	return &Response{true, 0, nil}
+func GetResponseOK() (r *Response) {
+	r = &Response{nil, nil}
+	return
+}
+
+// Все ок, вот тебе данные
+func GetResponseData(data any) (r *Response) {
+	r = GetResponseOK()
+	r.Data = data
+	return
 }
 
 // Затычка для странной логики
-func GetResponseErr() *Response {
-	return &Response{false, 0, nil}
+func GetResponseErr() (r *Response) {
+	r = GetResponseOK()
+	r.Err = "Err...?"
+	return
 }
 
 // Нет доступа (lip-lock)
-func GetResponseErrAccessDenied() *Response {
-	return &Response{false, 1, nil}
+func GetResponseErrAccessDenied() (r *Response) {
+	r = GetResponseOK()
+	r.Err = "Access denied"
+	return
 }
 
 // Нет нужного значения в теле запроса
-func GetResponseErrNoValueInBody() *Response {
-	return &Response{false, 2, nil}
+func GetResponseErrNoFieldInQuery() (r *Response) {
+	r = GetResponseOK()
+	r.Err = "No required field in request query"
+	return
 }
 
 // Объект уже существует
-func GetResponseErrItemAlreadyExists() *Response {
-	return &Response{false, 3, nil}
+func GetResponseErrItemAlreadyExists() (r *Response) {
+	r = GetResponseOK()
+	r.Err = "Item already exists"
+	return
 }
 
 // Объект не существует
-func GetResponseErrItemNotExists() *Response {
-	return &Response{false, 4, nil}
+func GetResponseErrItemNotExists() (r *Response) {
+	r = GetResponseOK()
+	r.Err = "Item not exists"
+	return
 }
 
 // Не удалось отправить файл
-func GetResponseErrSendFile() *Response {
-	return &Response{false, 5, nil}
+func GetResponseErrSendFile() (r *Response) {
+	r = GetResponseOK()
+	r.Err = "Cant't send file"
+	return
 }
 
 // WIP
-func GetResponseErrWIP() *Response {
-	return &Response{false, 99, nil}
+func GetResponseErrWIP() (r *Response) {
+	r = GetResponseOK()
+	r.Err = "WIP"
+	return
 }

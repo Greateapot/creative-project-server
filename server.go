@@ -1,10 +1,5 @@
 package main
 
-/*
-TODO:
-1. add logs to file or/and stream (stdout/stdin/stderr)
-*/
-
 import (
 	"fmt"
 	"greateapot/creative_project_server/models"
@@ -12,7 +7,7 @@ import (
 )
 
 // go build -o bin/
-// bin/creative_project_server.exe --local-ip=192.168.10.104
+// bin/creative_project_server.exe --local-ip 192.168.10.104
 func main() {
 	server := &http.Server{}
 	server.Addr = fmt.Sprintf("%s:%d", models.LocalIp, models.Port)

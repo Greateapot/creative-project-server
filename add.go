@@ -8,18 +8,18 @@ import (
 
 func HandleAdd(w http.ResponseWriter, r *http.Request) {
 	if !IsHostRequest(r) {
-		sendResponse(w, models.GetResponseErrAccessDenied())
+		sendResponse(w, http.StatusForbidden, models.GetResponseErrAccessDenied())
 		return
 	}
 
 	if title := r.FormValue("title"); title == "" {
-		sendResponse(w, models.GetResponseErrNoValueInBody()) // TODO: redo: no title provided
+		sendResponse(w, http.StatusBadRequest, models.GetResponseErrNoFieldInQuery()) // TODO: redo: no title provided
 	} else if path := r.FormValue("path"); path == "" {
-		sendResponse(w, models.GetResponseErrNoValueInBody()) // TODO: redo: no path provided
+		sendResponse(w, http.StatusBadRequest, models.GetResponseErrNoFieldInQuery()) // TODO: redo: no path provided
 	} else if itemType, err := strconv.Atoi(r.FormValue("type")); err != nil {
-		sendResponse(w, models.GetResponseErrNoValueInBody()) // TODO: redo: cant parse
+		sendResponse(w, http.StatusBadRequest, models.GetResponseErrNoFieldInQuery()) // TODO: redo: cant parse
 	} else if itemType < 1 || itemType > 3 {
-		sendResponse(w, models.GetResponseErrNoValueInBody()) // TODO: redo: no type $itemType
+		sendResponse(w, http.StatusBadRequest, models.GetResponseErrNoFieldInQuery()) // TODO: redo: no type $itemType
 	} else {
 		item := &models.Item{
 			Title: title,
@@ -35,11 +35,11 @@ func HandleAdd(w http.ResponseWriter, r *http.Request) {
 		} // Ищем уже существующий
 
 		if flag {
-			sendResponse(w, models.GetResponseErrItemAlreadyExists())
+			sendResponse(w, http.StatusBadRequest, models.GetResponseErrItemAlreadyExists())
 		} else {
 			data.Items = append(data.Items, item)
 			data.Write()
-			sendResponse(w, models.GetResponseOK())
+			sendResponse(w, http.StatusOK, models.GetResponseOK())
 		}
 	}
 }

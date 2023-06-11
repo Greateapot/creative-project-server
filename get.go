@@ -11,7 +11,7 @@ import (
 func HandleGet(w http.ResponseWriter, r *http.Request) {
 
 	if title := r.FormValue("title"); title == "" {
-		sendResponse(w, models.GetResponseErrNoValueInBody())
+		sendResponse(w, http.StatusBadRequest, models.GetResponseErrNoFieldInQuery())
 	} else {
 		var item *models.Item
 
@@ -22,7 +22,7 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if item.Title == "" {
-			sendResponse(w, models.GetResponseErrItemNotExists())
+			sendResponse(w, http.StatusBadRequest, models.GetResponseErrItemNotExists())
 			return
 		}
 
@@ -32,7 +32,7 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 		case 2: // file
 			if IsHostRequest(r) {
 				// TODO: А зачем тебе твой же файл?
-				sendResponse(w, models.GetResponseErr())
+				sendResponse(w, http.StatusTeapot, models.GetResponseErr())
 			} else {
 				handleFile(w, item)
 			}
@@ -40,13 +40,13 @@ func HandleGet(w http.ResponseWriter, r *http.Request) {
 			handleLink(w, item)
 		default:
 			// TODO: А как так вышло, что у нас в [data.json] объект с несуществующим типом?
-			sendResponse(w, models.GetResponseErr())
+			sendResponse(w, http.StatusTeapot, models.GetResponseErr())
 		}
 	}
 }
 
 func handleFolder(w http.ResponseWriter, item *models.Item) {
-	sendResponse(w, models.GetResponseErrWIP())
+	sendResponse(w, http.StatusTeapot, models.GetResponseErrWIP())
 }
 
 func handleFile(w http.ResponseWriter, item *models.Item) {
@@ -57,10 +57,11 @@ func handleFile(w http.ResponseWriter, item *models.Item) {
 	}()
 
 	if err != nil {
-		sendResponse(w, models.GetResponseErrSendFile())
+		sendResponse(w, http.StatusInternalServerError, models.GetResponseErrSendFile())
 	} else if stat, err := file.Stat(); err != nil {
-		sendResponse(w, models.GetResponseErrSendFile())
+		sendResponse(w, http.StatusInternalServerError, models.GetResponseErrSendFile())
 	} else {
+		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Disposition", "attachment; filename="+item.Title) // TODO: replace err symbols (\|'"...)
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", stat.Size()))
@@ -69,5 +70,5 @@ func handleFile(w http.ResponseWriter, item *models.Item) {
 }
 
 func handleLink(w http.ResponseWriter, item *models.Item) {
-	sendResponse(w, models.CreateDataResponse(item.Path))
+	sendResponse(w, http.StatusOK, models.GetResponseData(item.Path))
 }
