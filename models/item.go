@@ -27,51 +27,51 @@ type Item struct {
 	Type int `json:"type"`
 }
 
-type Data struct {
+type Items struct {
 	Items []*Item `json:"items"`
 }
 
-func GetData() *Data {
-	data := &Data{}
-	data.Read()
-	return data
+func GetItems() *Items {
+	Items := &Items{}
+	Items.Read()
+	return Items
 }
 
-func (d *Data) HidePath() (hiddenData *Data) {
-	hiddenData = &Data{}
+func (d *Items) HidePath() (hiddenItems *Items) {
+	hiddenItems = &Items{}
 	for _, item := range d.Items {
 		hiddenItem := &Item{item.Title, "", item.Type} // create copy with no path
-		hiddenData.Items = append(hiddenData.Items, hiddenItem)
+		hiddenItems.Items = append(hiddenItems.Items, hiddenItem)
 	}
 	return
 }
 
-func (d *Data) open(flag int) (*os.File, error) {
+func (d *Items) open(flag int) (*os.File, error) {
 	if homeDir, err := os.UserHomeDir(); err != nil {
 		return nil, err
 	} else {
-		return os.OpenFile(filepath.Join(homeDir, "Documents", "Creative Project", dataFileName), flag, 0666)
+		return os.OpenFile(filepath.Join(homeDir, "Documents", "Creative Project", itemsFileName), flag, 0666)
 	}
 }
 
-func (d *Data) Read() {
+func (d *Items) Read() {
 	file, err := d.open(os.O_RDONLY)
 
 	if err != nil {
-		fmt.Println("Read(Open):", err, ";data:", d)
+		fmt.Println("Read(Open):", err, ";Items:", d)
 		if !os.IsNotExist(err) {
 			// Что-то не так с файлом
 			file.Close()
-			os.Rename(dataFileName, dataFileName+corrupted)
+			os.Rename(itemsFileName, itemsFileName+corrupted)
 		}
 		d.Write() // создаем новый
 	} else {
 		if buf, err := io.ReadAll(file); err != nil {
-			fmt.Println("Read(ReadAll):", err, ";data:", d)
+			fmt.Println("Read(ReadAll):", err, ";Items:", d)
 		} else if err := json.Unmarshal(buf, d); err != nil {
-			fmt.Println("Read(Unmarshal):", err, ";data:", d)
+			fmt.Println("Read(Unmarshal):", err, ";Items:", d)
 			file.Close()
-			os.Rename(dataFileName, dataFileName+corrupted)
+			os.Rename(itemsFileName, itemsFileName+corrupted)
 			d.Write()
 		} else {
 			// fmt.Println("Read(End): ok")
@@ -80,21 +80,21 @@ func (d *Data) Read() {
 	}
 }
 
-func (d *Data) Write() {
+func (d *Items) Write() {
 	file, err := d.open(os.O_CREATE | os.O_WRONLY | os.O_TRUNC)
 
 	defer func() {
 		if err := file.Close(); err != nil {
-			fmt.Println("Write(Close):", err, ";data:", d)
+			fmt.Println("Write(Close):", err, ";Items:", d)
 		}
 	}()
 
 	if err != nil {
-		fmt.Println("Write(Open):", err, ";data:", d)
-	} else if data, err := json.Marshal(d); err != nil {
-		fmt.Println("Write(Marshal):", err, ";data:", d)
-	} else if _, err := file.Write(data); err != nil {
-		fmt.Println("Write(Write):", err, ";data:", d)
+		fmt.Println("Write(Open):", err, ";Items:", d)
+	} else if Items, err := json.Marshal(d); err != nil {
+		fmt.Println("Write(Marshal):", err, ";Items:", d)
+	} else if _, err := file.Write(Items); err != nil {
+		fmt.Println("Write(Write):", err, ";Items:", d)
 	}
 	// else {
 	// fmt.Println("Write(End): ok")

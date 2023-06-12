@@ -16,21 +16,21 @@ import "flag"
 */
 
 var (
-	LocalIp      string
-	corrupted    string
-	dataFileName string
-	Port         int
-	scanDelay    int // ms
-	scanThreads  int // 256 / scanThreads, must be 2^N
+	LocalIp       string
+	corrupted     string
+	itemsFileName string
+	Port          int
+	scanTimeout   int // ms
+	scanThreads   int // 256 / scanThreads, must be 2^N
 )
 
 func init() {
 	flag.StringVar(&LocalIp, "local-ip", "", "local ip")
 	flag.StringVar(&corrupted, "corr-file-ext", ".crp", "corrupted filename extension")
-	flag.StringVar(&dataFileName, "data-filename", "data.json", "data filename")
+	flag.StringVar(&itemsFileName, "data-filename", "data.json", "data filename")
 
 	flag.IntVar(&Port, "port", 8097, "port")
-	flag.IntVar(&scanDelay, "scan-delay", 500, "scan delay")
+	flag.IntVar(&scanTimeout, "scan-timeout", 500, "scan timeout")
 	flag.IntVar(&scanThreads, "scan-threads", 4, "scan threads count")
 
 	flag.Parse()

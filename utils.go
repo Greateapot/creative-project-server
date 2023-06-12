@@ -7,8 +7,10 @@ import (
 	"strings"
 )
 
-func sendResponse(w http.ResponseWriter, statusCode int, r *models.Response) {
-	if data, err := json.Marshal(r); err == nil {
+func sendResponse(w http.ResponseWriter, statusCode int, r any) {
+	if r == nil {
+		w.WriteHeader(statusCode)
+	} else if data, err := json.Marshal(r); err == nil {
 		w.WriteHeader(statusCode)
 		w.Write([]byte(data))
 	} else {

@@ -7,18 +7,18 @@ import (
 
 func HandleDel(w http.ResponseWriter, r *http.Request) {
 	if !IsHostRequest(r) {
-		sendResponse(w, http.StatusForbidden, models.GetResponseErrAccessDenied())
+		sendResponse(w, http.StatusForbidden, models.ErrAccessDenied())
 	} else if title := r.FormValue("title"); title == "" {
-		sendResponse(w, http.StatusBadRequest, models.GetResponseErrNoFieldInQuery())
+		sendResponse(w, http.StatusBadRequest, models.ErrNoRequiredFieldInRequestQuery())
 	} else {
-		data := models.GetData()
-		for i := 0; i < len(data.Items); i++ {
-			if data.Items[i].Title == title {
-				data.Items = append(data.Items[:i], data.Items[i+1:]...)
+		items := models.GetItems()
+		for i := 0; i < len(items.Items); i++ {
+			if items.Items[i].Title == title {
+				items.Items = append(items.Items[:i], items.Items[i+1:]...)
 				i--
 			}
 		} // удаляем все (вдруг юзер идиот) объекты, с указанным ключом (именем).
-		data.Write()
-		sendResponse(w, http.StatusOK, models.GetResponseOK())
+		items.Write()
+		sendResponse(w, http.StatusOK, nil)
 	}
 }

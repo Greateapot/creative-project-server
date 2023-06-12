@@ -8,9 +8,9 @@ import (
 
 func HandleShutdown(s *http.Server, w http.ResponseWriter, r *http.Request) {
 	if !IsHostRequest(r) {
-		sendResponse(w, http.StatusForbidden, models.GetResponseErrAccessDenied())
+		sendResponse(w, http.StatusForbidden, models.ErrAccessDenied())
 	} else {
-		sendResponse(w, http.StatusOK, models.GetResponseOK())
+		sendResponse(w, http.StatusOK, nil)
 
 		go func() {
 			time.Sleep(time.Second) // 1 sec delay for request

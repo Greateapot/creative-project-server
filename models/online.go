@@ -33,7 +33,7 @@ func GetOnline() *Online {
 	count := 0
 	line := ""
 
-	timeout := time.Duration(time.Duration(scanDelay) * time.Millisecond)
+	timeout := time.Duration(time.Duration(scanTimeout) * time.Millisecond)
 
 	for a := 0; a < 256; a += 256 / scanThreads {
 		go getOnline(a, a+(256/scanThreads), pattern, timeout, buf, ex)

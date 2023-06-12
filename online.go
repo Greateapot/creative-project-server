@@ -7,8 +7,8 @@ import (
 
 func HandleOnline(w http.ResponseWriter, r *http.Request) {
 	if !IsHostRequest(r) {
-		sendResponse(w, http.StatusForbidden, models.GetResponseErrAccessDenied())
+		sendResponse(w, http.StatusForbidden, models.ErrAccessDenied())
 	} else {
-		sendResponse(w, http.StatusOK, models.GetResponseData(models.GetOnline()))
+		sendResponse(w, http.StatusOK, models.GetOnline())
 	}
 }
